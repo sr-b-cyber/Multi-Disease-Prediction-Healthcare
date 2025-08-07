@@ -52,9 +52,7 @@ Explore the deployed version at:
 ## Screenshots
 **Disease seletion menu**  
 ![App Screenshot](images/image1.png)
-**User input**  
 ![App Screenshot](images/image2.png)
-**Asthma preditiob Button**  
 ![App Screenshot](images/image3.png)
 **Typhoid prediction Button**  
 ![App Screenshot](images/image4.png)
