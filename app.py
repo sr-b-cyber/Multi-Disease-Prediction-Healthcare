@@ -29,6 +29,12 @@ Diabetes_preprocessor = load_model(f'{working_dir}/models/Diabetes_preprocessor.
 Asthma_preprocessor = load_model(f'{working_dir}/models/Asthma_preprocessor.pkl')
 BP_preprocessor = load_model(f'{working_dir}/models/BP_preprocessor.pkl')
 
+# Load Typhoid preprocessors separately
+Typhoid_scaler = load_model(f'{working_dir}/models/Typhoid_scaler.pkl')
+Typhoid_encoder = load_model(f'{working_dir}/models/Typhoid_encoder.pkl')
+Typhoid_num_imputer = load_model(f'{working_dir}/models/Typhoid_num_imputer.pkl')
+Typhoid_cat_imputer = load_model(f'{working_dir}/models/Typhoid_cat_imputer.pkl')
+
 # Sidebar Navigation
 with st.sidebar:
     selected = option_menu("Disease Prediction System",
@@ -285,31 +291,58 @@ elif selected == "Typhoid Prediction":
         Weather = st.selectbox("Weather Conditions", ["Hot & Dry", "Rainy & Wet", "Moderate", "Cold & Humid"])
 
         if st.button("Predict Typhoid"):
-            input_data = pd.DataFrame([{
-                'Location': Location,
-                'Socioeconomic Status': SES,
-                'Water Source Type': WaterSource,
-                'Sanitation Facilities': Sanitation,
-                'Hand Hygiene': HandHygiene,
-                'Consumption of Street Food': StreetFood,
-                'Fever Duration (Days)': FeverDays,
-                'Skin Manifestations': SkinIssues,
-                'White Blood Cell Count': WBC,
-                'Platelet Count': Platelets,
-                'Blood Culture Result': CultureResult,
-                'Typhidot Test': TyphoidTest,
-                'Typhoid Vaccination Status': Vaccination,
-                'Previous History of Typhoid': History,
-                'Weather Condition': Weather
-            }])
-            
-            result = Typhoid_model.predict(input_data)[0]
-            typhoid_classes = {
-                0: "No Typhoid",
-                1: "Relapsing Typhoid",
-                2: "Complicated Typhoid",
-                3: "Acute Typhoid Fever"
-            }
-            st.success(f"🦠 Prediction: {typhoid_classes.get(result, 'Unknown')}")
+            # Check if models are available
+            if Typhoid_model is None or Typhoid_scaler is None or Typhoid_encoder is None:
+                st.warning("⚠️ Typhoid prediction model is currently unavailable. Please try again later.")
+            else:
+                try:
+                    # Define categorical and numerical columns
+                    categorical_cols = ['Previous History of Typhoid','Typhoid Vaccination Status','Blood Culture Result',
+                                       'Skin Manifestations','Sanitation Facilities','Hand Hygiene','Consumption of Street Food',
+                                       'Location', 'Socioeconomic Status', 'Water Source Type', 'Typhidot Test','Weather Condition']
+                    numerical_cols = ['Fever Duration (Days)', 'White Blood Cell Count', 'Platelet Count']
+                    
+                    # Create input data
+                    input_data = pd.DataFrame([{
+                        'Location': Location,
+                        'Socioeconomic Status': SES,
+                        'Water Source Type': WaterSource,
+                        'Sanitation Facilities': Sanitation,
+                        'Hand Hygiene': HandHygiene,
+                        'Consumption of Street Food': StreetFood,
+                        'Fever Duration (Days)': FeverDays,
+                        'Skin Manifestations': SkinIssues,
+                        'White Blood Cell Count': WBC,
+                        'Platelet Count': Platelets,
+                        'Blood Culture Result': CultureResult,
+                        'Typhidot Test': TyphoidTest,
+                        'Typhoid Vaccination Status': Vaccination,
+                        'Previous History of Typhoid': History,
+                        'Weather Condition': Weather
+                    }])
+                    
+                    # Apply manual preprocessing (same as in notebook)
+                    # Process numerical columns
+                    input_num = Typhoid_num_imputer.transform(input_data[numerical_cols])
+                    input_num_scaled = Typhoid_scaler.transform(input_num)
+                    
+                    # Process categorical columns
+                    input_cat = Typhoid_cat_imputer.transform(input_data[categorical_cols])
+                    input_cat_encoded = Typhoid_encoder.transform(input_cat)
+                    
+                    # Combine numerical and categorical features
+                    input_processed = np.hstack([input_num_scaled, input_cat_encoded])
+                    
+                    # Make prediction
+                    result = Typhoid_model.predict(input_processed)[0]
+                    typhoid_classes = {
+                        0: "No Typhoid",
+                        1: "Relapsing Typhoid",
+                        2: "Complicated Typhoid",
+                        3: "Acute Typhoid Fever"
+                    }
+                    st.success(f"🦠 Prediction: {typhoid_classes.get(result, 'Unknown')}")
+                except Exception as e:
+                    st.error(f"Typhoid Prediction error: {e}")
     except Exception as e:
         st.error(f"Typhoid Prediction error: {e}")
