@@ -57,6 +57,4 @@ Explore the deployed version at:
 **Typhoid prediction Button**  
 ![App Screenshot](images/image4.png)
 
-
-## Developers Info
 - 
