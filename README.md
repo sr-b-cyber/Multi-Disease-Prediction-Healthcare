@@ -59,5 +59,4 @@ Explore the deployed version at:
 
 
 ## Developers Info
-- Made by Driti Rathod 
-- email - dritirathod2906@gmail.com 
+- 
